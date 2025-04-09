@@ -1,5 +1,36 @@
 import React, { useState } from 'react';
 import { jsPDF } from 'jspdf';
+import { 
+  Box, 
+  Typography, 
+  Button, 
+  Paper, 
+  Container,
+  Switch,
+  FormControlLabel,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton
+} from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+
+const Theme = createTheme({
+  palette: {
+    primary: {
+      main: '#0078C8', // основной синий
+    },
+    secondary: {
+      main: '#00396F', // темно-синий
+    },
+    background: {
+      default: '#F6F8FB',
+    },
+  },
+});
+
 
 const FileUpload = () => {
   const [files, setFiles] = useState([]);
@@ -13,9 +44,23 @@ const FileUpload = () => {
     );
 
     if (validFiles.length > 0) {
-      setFiles(validFiles);
+      setFiles([...files, ...validFiles]);
     } else {
       alert('Пожалуйста, выберите файлы форматов PDF или DOCX');
+    }
+    
+    // Сбрасываем значение input, чтобы можно было повторно загрузить тот же файл
+    event.target.value = '';
+  };
+
+  const handleRemoveFile = (index) => {
+    const newFiles = [...files];  // Создаем копию массива файлов
+    newFiles.splice(index, 1);    // Удаляем элемент с указанным индексом
+    setFiles(newFiles);           // Обновляем состояние с новым массивом
+    
+    // Сброс результатов анализа при удалении файла
+    if (report) {
+      setReport(null);
     }
   };
 
@@ -45,38 +90,119 @@ const FileUpload = () => {
   };
 
   return (
-    <div>
-      <h1>Анализ соответствия компетенций</h1>
-      
-      {/* Поле для загрузки файлов */}
-      <input
-        type="file"
-        accept=".pdf,.docx"
-        multiple
-        onChange={handleFileChange}
-      />
-
-      {/* Кнопка для запуска анализа */}
-      <button onClick={handleAnalyze}>Запустить анализ</button>
-
-      {/* Отображение отчета после анализа */}
-      {report && (
-        <div>
-          <h3>Отчет:</h3>
-          <p>{isDetailed ? report.detailed : report.summary}</p>
-          <button onClick={() => setIsDetailed(!isDetailed)}>
-            {isDetailed ? 'Сделать отчет кратким' : 'Сделать отчет подробным'}
-          </button>
-        </div>
-      )}
-
-      {/* Кнопка для скачивания отчета в формате PDF */}
-      {report && (
-        <button onClick={handleDownloadPDF}>
-          Скачать отчет в формате PDF
-        </button>
-      )}
-    </div>
+    <ThemeProvider theme={Theme}>
+      <Container maxWidth="md" sx={{ py: 3 }}>
+        <Paper elevation={2} sx={{ p: 3, borderRadius: '8px' }}>
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              mb: 2, 
+              color: 'primary.main',
+              fontWeight: 'bold' 
+            }}
+          >
+            Анализ соответствия компетенций
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+          
+          <Box mb={3}>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              Загрузите резюме и должностные инструкции для анализа
+            </Typography>
+            
+            <Box mb={2}>
+              <Button
+                variant="contained"
+                component="label"
+                color="primary"
+                sx={{ mr: 1 }}
+              >
+                Выбрать файлы
+                <input
+                  type="file"
+                  hidden
+                  accept=".pdf,.docx"
+                  multiple
+                  onChange={handleFileChange}
+                />
+              </Button>
+              
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleAnalyze}
+                disabled={files.length === 0}
+              >
+                Запустить анализ
+              </Button>
+            </Box>
+            
+            {/* Список загруженных файлов */}
+            {files.length > 0 && (
+              <Paper variant="outlined" sx={{ p: 1, mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Загруженные файлы ({files.length}):
+                </Typography>
+                <List dense>
+                  {files.map((file, index) => (
+                    <ListItem
+                      key={index}
+                      secondaryAction={
+                        <IconButton edge="end" onClick={() => handleRemoveFile(index)}>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      }
+                    >
+                      <ListItemText 
+                        primary={file.name}
+                        secondary={file.type.includes('pdf') ? 'PDF' : 'DOCX'} 
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Paper>
+            )}
+          </Box>
+          
+          {/* Отображение отчета после анализа */}
+          {report && (
+            <Box sx={{ mt: 3, p: 2, bgcolor: 'background.default', borderRadius: '4px' }}>
+              <Typography variant="h6" sx={{ mb: 2, color: 'secondary.main' }}>
+                Результаты анализа
+              </Typography>
+              
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={isDetailed}
+                    onChange={() => setIsDetailed(!isDetailed)}
+                    color="primary"
+                  />
+                }
+                label={isDetailed ? "Подробный отчет" : "Краткий отчет"}
+                sx={{ mb: 1 }}
+              />
+              
+              <Paper variant="outlined" sx={{ p: 2, bgcolor: 'white', whiteSpace: 'pre-line' }}>
+                <Typography variant="body2">
+                  {isDetailed ? report.detailed : report.summary}
+                </Typography>
+              </Paper>
+              
+              <Box sx={{ mt: 2 }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleDownloadPDF}
+                >
+                  Скачать отчет в PDF
+                </Button>
+              </Box>
+            </Box>
+          )}
+        </Paper>
+      </Container>
+    </ThemeProvider>
   );
 };
 
