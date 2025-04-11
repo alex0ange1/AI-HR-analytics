@@ -13,12 +13,14 @@ from project.resource.auth import oauth2_scheme
 
 from project.infrastructure.postgres.repository.user_repo import UserRepository
 from project.infrastructure.postgres.repository.profession_repo import ProfessionRepository
+from project.infrastructure.postgres.repository.resume_repo import ResumeRepository
 
 
 database = PostgresDatabase()
 
 user_repo = UserRepository()
 profession_repo = ProfessionRepository()
+resume_repo = ResumeRepository()
 
 AUTH_EXCEPTION_MESSAGE = "Невозможно проверить данные для авторизации"
 

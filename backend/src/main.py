@@ -12,6 +12,7 @@ from project.api.healthcheck import healthcheck_router
 
 from project.api.user_routes import user_router
 from project.api.profession_routes import profession_router
+from project.api.resume_routes import resume_router
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,7 @@ def create_app() -> FastAPI:
 
     app.include_router(user_router, tags=["User"])
     app.include_router(profession_router, tags=["Profession"])
+    app.include_router(resume_router, tags=["Resume"])
 
     return app
 

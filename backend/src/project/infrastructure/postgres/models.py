@@ -36,4 +36,4 @@ class Resume(Base):
     phone: Mapped[str] = mapped_column(nullable=False)
     email: Mapped[str | None] = mapped_column(nullable=True)
 
-    competencies: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    competencies: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
