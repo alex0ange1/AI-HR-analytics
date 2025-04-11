@@ -9,12 +9,16 @@ from project.schemas.auth import TokenData
 from project.schemas.user import UserSchema
 from project.core.config import settings
 from project.core.exceptions import CredentialsException
-from project.infrastructure.postgres.repository.user_repo import UserRepository
 from project.resource.auth import oauth2_scheme
 
+from project.infrastructure.postgres.repository.user_repo import UserRepository
+from project.infrastructure.postgres.repository.profession_repo import ProfessionRepository
+
+
+database = PostgresDatabase()
 
 user_repo = UserRepository()
-database = PostgresDatabase()
+profession_repo = ProfessionRepository()
 
 AUTH_EXCEPTION_MESSAGE = "Невозможно проверить данные для авторизации"
 

@@ -16,3 +16,9 @@ To start the migration, run the following command:
 ```bash
 docker-compose exec backend alembic revision --autogenerate -m 'name'
 ```
+
+To update the migration, run the following command:
+
+```bash
+docker-compose exec app alembic upgrade head
+```

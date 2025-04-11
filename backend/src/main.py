@@ -7,9 +7,11 @@ from starlette.middleware.cors import CORSMiddleware
 
 from project.core.config import settings
 
-from project.api.user_routes import user_router
 from project.api.auth_routes import auth_router
 from project.api.healthcheck import healthcheck_router
+
+from project.api.user_routes import user_router
+from project.api.profession_routes import profession_router
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +35,11 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    app.include_router(user_router, tags=["User"])
     app.include_router(auth_router, tags=["Auth"])
     app.include_router(healthcheck_router, tags=["Health check"])
+
+    app.include_router(user_router, tags=["User"])
+    app.include_router(profession_router, tags=["Profession"])
 
     return app
 
