@@ -17,6 +17,8 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
+import { getUsers } from '../utilits/getAllUsers';
+
 const Theme = createTheme({
   palette: {
     primary: {
@@ -63,21 +65,53 @@ const FileUpload = () => {
       setReport(null);
     }
   };
-
-  const handleAnalyze = () => {
-    // Эмулируем отправку файлов на сервер и получение отчета
-    // Обычно тут будет код для отправки файлов на бэк через fetch или axios
-    // Но для этого примера мы просто генерируем фиктивный отчет
-    if (files.length > 0) {
-      const analysisReport = {
-        summary: "Краткий отчет о соответствии компетенций.",
-        detailed: "Подробный отчет о соответствии компетенций. Он содержит более глубокий анализ, который описывает каждый аспект в деталях."
-      };
-      setReport(analysisReport);
-    } else {
-      alert('Пожалуйста, выберите файлы для анализа');
+  
+  const handleAnalyze = async () => {
+    try {
+      const users = await getUsers(); 
+      
+      // Формируем строку с информацией о пользователях
+      const usersInfo = users.map(user => 
+        `id: ${user.id}, email: ${user.email}, admin: ${user.is_admin ? "да" : "нет"}`
+      ).join('\n\n');
+      
+      if (files.length > 0) {
+        const analysisReport = {
+          summary: `Общее количество пользователей: ${users.length}`,
+          detailed: `Детальная информация о пользователях:\n\n${usersInfo}`
+        };
+        setReport(analysisReport);
+      } else {
+        alert('Пожалуйста, выберите файлы для анализа');
+      }
+    } catch (error) {
+      console.error('Ошибка при анализе:', error);
+      alert('Произошла ошибка при получении данных пользователей');
     }
   };
+
+  // const handleAnalyze = async () => {
+  //   const users = await getUsers(); 
+  //   const an = users.map(user => ({
+  //     id: user.id,
+  //     email: user.email,
+  //     is_admin: use.is_admin
+  //   }));
+  //   // Эмулируем отправку файлов на сервер и получение отчета
+  //   // Обычно тут будет код для отправки файлов на бэк через fetch или axios
+  //   // Но для этого примера мы просто генерируем фиктивный отчет
+  //   if (files.length > 0) {
+  //     const analysisReport = {
+  //       summary: `email: ${an.email}`,
+  //       detailed:  `id: ${an.id}, email: ${an.email}, admin: ${an.is_admin ? "да" : "нет"}`
+  //       // summary: "Краткий отчет о соответствии компетенций.",
+  //       // detailed: "Подробный отчет о соответствии компетенций. Он содержит более глубокий анализ, который описывает каждый аспект в деталях."
+  //     };
+  //     setReport(analysisReport);
+  //   } else {
+  //     alert('Пожалуйста, выберите файлы для анализа');
+  //   }
+  // };
 
   const handleDownloadPDF = () => {
     if (report) {
