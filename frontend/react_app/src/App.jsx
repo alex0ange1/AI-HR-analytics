@@ -1,11 +1,24 @@
 import './App.css'
 import FileUpload from './components/FileUpload'
 
+import auth from './utilits/auth';
+
 function App() {
     // const [count, setCount] = useState(0)
 
+
+    // Автоматическая авторизация при загрузке
+    auth.authenticate().then(authenticated => {
+    if (authenticated) {
+        console.log('Auto-login successful');
+        // Запускаем основное приложение
+    } else {
+        console.error('Auto-login failed - check backend availability');
+    }
+    });
     return (
         <>
+        
             <FileUpload></FileUpload>
             {/* <div>
                 <a href="https://vite.dev" target="_blank">
