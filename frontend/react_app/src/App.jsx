@@ -1,47 +1,18 @@
 import './App.css'
-import FileUpload from './components/FileUpload'
+import { Route, Routes, Navigate } from 'react-router-dom';
 
-import auth from './utilits/auth';
-
-function App() {
-    // const [count, setCount] = useState(0)
+import Analyse from './pages/Analyse';
+import Authorization from './pages/Authorization';
 
 
-    // Автоматическая авторизация при загрузке
-    auth.authenticate().then(authenticated => {
-    if (authenticated) {
-        console.log('Auto-login successful');
-        // Запускаем основное приложение
-    } else {
-        console.error('Auto-login failed - check backend availability');
-    }
-    });
+export default function App() {
+    const isAuthenticated = !!localStorage.getItem('token')
+    // const isAuthenticated = true;
+
     return (
-        <>
-        
-            <FileUpload></FileUpload>
-            {/* <div>
-                <a href="https://vite.dev" target="_blank">
-                    <img src={viteLogo} className="logo" alt="Vite logo" />
-                </a>
-                <a href="https://react.dev" target="_blank">
-                    <img src={reactLogo} className="logo react" alt="React logo" />
-                </a>
-            </div>
-            <h1>Vite + React</h1>
-            <div className="card">
-                <button onClick={() => setCount((count) => count + 1)}>
-                    count is {count}
-                </button>
-                <p>
-                    Edit <code>src/App.jsx</code> and save to test HMR
-                </p>
-            </div>
-            <p className="read-the-docs">
-                Click on the Vite and React logos to learn more
-            </p> */}
-        </>
+        <Routes>
+            <Route path="/" element={isAuthenticated ? <Analyse /> : <Navigate to='/login' />} />
+            <Route path="/login" element={<Authorization />} />
+        </Routes>
     )
 }
-
-export default App
