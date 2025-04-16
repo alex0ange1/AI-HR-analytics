@@ -2,6 +2,32 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { login, register } from '../utilits/auth'  // импортируем login и register функции
 import styles from './Authorization.module.css';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { 
+    Container,
+  Paper, 
+  Typography,
+  TextField,
+  Button,
+  Box,
+  Divider,
+  Link
+  } from '@mui/material';
+
+const Theme = createTheme({
+  palette: {
+    primary: {
+      main: '#0078C8', // основной синий
+    },
+    secondary: {
+      main: '#00396F', // темно-синий
+    },
+    background: {
+      default: '#F6F8FB',
+    },
+  },
+});
+
 
 const Authorization = () => {
     const [mode, setMode] = useState('login') // 'login' | 'register'
@@ -35,35 +61,81 @@ const Authorization = () => {
     }
 
     return (
-        <div className={styles.wrapper}>
-            <h2>{mode === 'login' ? 'Вход' : 'Регистрация'}</h2>
-            <form onSubmit={handleSubmit}>
-                <input
-                    name="email"
-                    type="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    placeholder="Email"
-                    required
-                />
-                <input
-                    name="password"
-                    type="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    placeholder="Пароль"
-                    required
-                />
-                <button type="submit">{mode === 'login' ? 'Войти' : 'Зарегистрироваться'}</button>
-            </form>
-            <p className={styles.text_not_acc}>
-                {mode === 'login' ? 'Нет аккаунта?' : 'Уже есть аккаунт?'}{' '}
-                <button className={styles.btn_not_acc} type="button" onClick={toggleMode}>
-                    {mode === 'login' ? 'Зарегистрироваться' : 'Войти'}
-                </button>
-            </p>
-        </div>
-    )
-}
+    <ThemeProvider theme={Theme}>
+      <Container maxWidth="sm" sx={{ py: 3, height: '100vh', display: 'flex', alignItems: 'center' }}>
+        <Paper elevation={2} sx={{ p: 4, borderRadius: '8px', width: '100%' }}>
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              mb: 2, 
+              color: 'primary.main',
+              fontWeight: 'bold',
+              textAlign: 'center' 
+            }}
+          >
+            {mode === 'login' ? 'Вход' : 'Регистрация'}
+          </Typography>
+          <Divider sx={{ mb: 3 }} />
+          
+          <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              label="Email"
+              variant="outlined"
+              fullWidth
+              required
+              sx={{ mb: 1 }}
+            />
+            <TextField
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={handleChange}
+              label="Пароль"
+              variant="outlined"
+              fullWidth
+              required
+              sx={{ mb: 3 }}
+            />
+            <Button 
+              type="submit" 
+              variant="contained" 
+              color="primary" 
+              fullWidth
+              size="large"
+              sx={{ mb: 2 }}
+            >
+              {mode === 'login' ? 'Войти' : 'Зарегистрироваться'}
+            </Button>
+          </Box>
+          
+          <Box sx={{ textAlign: 'center', mt: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              {mode === 'login' ? 'Нет аккаунта?' : 'Уже есть аккаунт?'}{' '}
+              <Link 
+                component="button"
+                variant="body2"
+                onClick={toggleMode}
+                sx={{ 
+                  textDecoration: 'none', 
+                  fontWeight: 'medium',
+                  cursor: 'pointer',
+                  border: 'none',
+                  background: 'none',
+                  color: 'primary.main'
+                }}
+              >
+                {mode === 'login' ? 'Зарегистрироваться' : 'Войти'}
+              </Link>
+            </Typography>
+          </Box>
+        </Paper>
+      </Container>
+    </ThemeProvider>
+  );
+};
 
 export default Authorization

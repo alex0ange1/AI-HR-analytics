@@ -119,7 +119,6 @@ const FileUpload = () => {
                 variant="contained"
                 component="label"
                 color="primary"
-                sx={{ mr: 1 }}
               >
                 Выбрать файлы
                 <input
@@ -130,19 +129,11 @@ const FileUpload = () => {
                   onChange={handleFileChange}
                 />
               </Button>
-              
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleAnalyze}
-                disabled={files.length === 0}
-              >
-                Запустить анализ
-              </Button>
             </Box>
             
             {/* Список загруженных файлов */}
             {files.length > 0 && (
+              <>
               <Paper variant="outlined" sx={{ p: 1, mb: 2 }}>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
                 Загруженные файлы ({files.length}):
@@ -165,6 +156,22 @@ const FileUpload = () => {
                   ))}
                 </List>
               </Paper>
+
+              {/* Кнопка анализа появляется только когда есть файлы*/}
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2}}>
+                <Button
+                variant="contained"
+                color="primary"
+                onClick={handleAnalyze}
+                cx={{
+                  px: 3,
+                  py: 1
+                }}
+                >
+                  Запустить анализ
+                </Button>
+              </Box>
+              </>
             )}
           </Box>
           
