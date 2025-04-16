@@ -4,7 +4,7 @@ import apiClient from './api';
 export const login = async (form) => {
   try {
     const formData = new FormData();
-    formData.append('username', form.email); // или form.username — зависит от твоей логики
+    formData.append('username', form.email);
     formData.append('password', form.password);
     
     const response = await apiClient.post('/token', formData, {
@@ -22,16 +22,11 @@ export const login = async (form) => {
 // Регистрация - отправляется email и password
 export const register = async (form) => {
   try {
-    const formData = new FormData();
-    formData.append('email', form.email); // или form.username — зависит от твоей логики
-    formData.append('password', form.password);
-    
-    const response = await apiClient.post('/token', formData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      }
+    const response = await apiClient.post('/register', {
+      email: form.email,
+      password: form.password
     });
-    return response.data; // возвращаем данные о пользователе
+    return response.data;
   } catch (error) {
     console.error("Ошибка при регистрации:", error);
     throw error;

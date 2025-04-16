@@ -54,6 +54,7 @@ const Authorization = () => {
                 await register(form)
                 alert('Регистрация прошла успешно! Теперь войдите.')
                 setMode('login')
+                window.location.reload();
             }
         } catch (error) {
             alert('Ошибка: ' + (error?.response?.data?.detail || error.message))
