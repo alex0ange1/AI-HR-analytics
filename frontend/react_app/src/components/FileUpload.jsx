@@ -23,6 +23,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import axios from 'axios';
 import { get_all_prof } from '../utilits/getAllProfessions';
+import { get_resumes, upload_files } from '../utilits/analyze';
 
 const Theme = createTheme({
   palette: {
@@ -110,12 +111,15 @@ const FileUpload = () => {
   
   const handleAnalyze = async () => {
     try {
-      // const parse = await parse(); // добавить это, после того как будет api для парсинга резюме 
-      
+      const uploaded_files = await upload_files(files);
+      const res_resumes = await get_resumes(uploaded_files.resume_ids);
+      const resumes = res_resumes.resumes;
+      const last_name_resumes = resumes.map(res => res.last_name);
+
       if (files.length > 0 && selectedProfessions) {
         const analysisReport = {
-          summary: `Краткий отчет о сопоставлении резюме с требованиями профессии "${professionName}".`,
-          detailed: `Подробный отчет осопоставлении резюме с требованиями профессии "${professionName}".`
+          summary: `Отчет по следующим резюме: ${last_name_resumes.join(', ')}`,
+          detailed: `Подробный отчет`
         };
         setReport(analysisReport);
       } else {
@@ -218,7 +222,6 @@ const FileUpload = () => {
                 variant="contained"
                 component="label"
                 color="primary"
-                // disabled={!selectedProfessions}
                 style={!selectedProfessions 
                   ? {opacity: '0.5', backgroundColor: 'gray'}
                   : {}}
