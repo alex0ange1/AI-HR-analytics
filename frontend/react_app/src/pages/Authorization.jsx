@@ -58,13 +58,13 @@ const Authorization = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault()
-
+      e.preventDefault();
+      
         try {
             if (mode === 'login') {
                 const data = await login(form)
-                localStorage.setItem('token', data.access_token)
                 navigate('/')
+                localStorage.setItem('token', data.access_token)
             } else {
                 await register(form)
                 handleOpen('Регистрация прошла успешно!\nТеперь войдите.', 'success')
