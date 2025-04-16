@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { jsPDF } from 'jspdf';
 import { 
   Box, 
@@ -12,10 +12,16 @@ import {
   List,
   ListItem,
   ListItemText,
-  IconButton
+  IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  CircularProgress
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import axios from 'axios';
 
 const Theme = createTheme({
   palette: {
@@ -36,6 +42,38 @@ const FileUpload = () => {
   const [files, setFiles] = useState([]);
   const [report, setReport] = useState(null);
   const [isDetailed, setIsDetailed] = useState(false);
+
+  const [professions, setProfessions] = useState([]);
+  const [selectedProfessions, setSelectedProfessions] = useState('');
+  const [loadingProfessions, setLoadingProfessions] = useState(true);
+  const [errorProfessions, setErrorProfessions] = useState(null);
+
+  useEffect(() => {
+    const fetchProfessions = async () => {
+      try {
+        setLoadingProfessions(true);
+
+        const response = await axios.get('/all_professions');
+        
+        setProfessions(response.data.data);
+        setErrorProfessions(null);
+      } catch (err) {
+        console.error('Ошибка при загрузке профессий:', err);
+        setErrorProfessions('Не удалось загрузить список профессий');
+      } finally {
+        setLoadingProfessions(false);
+      }
+    };
+    fetchProfessions();
+  }, []);
+
+  const handleProfessionsChange = (event) => {
+    setSelectedProfessions(event.target.value);
+    // Сброс результатов предыдущего анализа при смене профессии
+    if (report) {
+      setReport(null);
+    }
+  };
 
   const handleFileChange = (event) => {
     const selectedFiles = Array.from(event.target.files);
@@ -68,14 +106,18 @@ const FileUpload = () => {
     try {
       // const parse = await parse(); // добавить это, после того как будет api для парсинга резюме 
       
-      if (files.length > 0) {
+      if (files.length > 0 && selectedProfessions) {
         const analysisReport = {
-          summary: `Краткая инфа об отчете. Наверное сделать вывод фамилий`,
-          detailed: `Подробная инфа`
+          summary: `Краткий отчет о сопоставлении резюме с требованиями профессии "${professionName}".`,
+          detailed: `Подробный отчет осопоставлении резюме с требованиями профессии "${professionName}".`
         };
         setReport(analysisReport);
       } else {
-        alert('Пожалуйста, выберите файлы для анализа');
+        if (!files.length) {
+          alert('Пожалуйста, выберите файлы для анализа');
+        } else if (!selectedProfessions){
+          alert('Пожалуйста, выберите профессию для анализа');
+        }
       }
     } catch (error) {
       console.error('Ошибка при анализе:', error);
@@ -121,6 +163,44 @@ const FileUpload = () => {
             Анализ соответствия компетенций
           </Typography>
           <Divider sx={{ mb: 2 }} />
+
+          {/* Блок выбора профессии */}
+          <Box mb={3}>
+            <Typography variant='body1' sx={{ mb: 1}}>
+              Выберите профессию для анализа:
+            </Typography>
+
+            {loadingProfessions ? (
+              <Box display='flex' alignItems='center' gap={2} mt={1}>
+                <CircularProgress size={20}/>
+                <Typography variant='body2' color='text.secondary'>
+                  Загрузка списка профессий...
+                </Typography>
+              </Box>
+            ) : errorProfessions ? (
+              <Typography variant='body2' color='error' mt={1}>
+                {errorProfessions}
+              </Typography>
+            ) : (
+              <FormControl fullWidth variant='outlined' sx={{ mt: 1 }}>
+                <InputLabel> Профессия </InputLabel>
+                <Select
+                value={selectedProfessions}
+                onChange={handleProfessionsChange}
+                label="Профессия"
+                >
+                  <MenuItem value="">
+                    <em> Выберите профессию </em>
+                  </MenuItem>
+                  {Array.isArray(professions) && professions.map((profession) => (
+                    <MenuItem key={profession.id} value={profession.id}>
+                      {profession.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+          </Box>
           
           <Box mb={3}>
             <Typography variant="body1" sx={{ mb: 2 }}>
