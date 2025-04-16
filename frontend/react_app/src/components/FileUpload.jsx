@@ -124,7 +124,7 @@ const FileUpload = () => {
           
           <Box mb={3}>
             <Typography variant="body1" sx={{ mb: 2 }}>
-              Загрузите резюме и должностные инструкции для анализа
+              Загрузите резюме для анализа
             </Typography>
             
             <Box mb={2}>
