@@ -97,6 +97,19 @@ const FileUpload = () => {
     <ThemeProvider theme={Theme}>
       <Container maxWidth="md" sx={{ py: 3 }}>
         <Paper elevation={2} sx={{ p: 3, borderRadius: '8px' }}>
+          {/* Блок с логотипом */}
+          <Box sx={{display: 'flex', justifyContent: 'center', mb: 3}}>
+            <img
+            src="/logo.png"
+            alt="Газпром нефть"
+            style={{
+              height: '100px',
+              objectFit: 'contain'
+            }}
+            />
+          </Box>
+          
+          
           <Typography 
             variant="h5" 
             sx={{ 

@@ -64,6 +64,19 @@ const Authorization = () => {
     <ThemeProvider theme={Theme}>
       <Container maxWidth="sm" sx={{ py: 3, height: '100vh', display: 'flex', alignItems: 'center' }}>
         <Paper elevation={2} sx={{ p: 4, borderRadius: '8px', width: '100%' }}>
+          
+        {/* Блок с логотипом */}
+          <Box sx={{display: 'flex', justifyContent: 'center', mb: 3}}>
+            <img
+             src="/logo.png"
+             alt="Газпром нефть"
+             style={{
+              height: '100px',
+              objectFit: 'contain'
+             }}
+            />
+          </Box>
+          
           <Typography 
             variant="h5" 
             sx={{ 
