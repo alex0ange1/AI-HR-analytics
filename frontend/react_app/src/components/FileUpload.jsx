@@ -24,6 +24,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import axios from 'axios';
 import { get_all_prof } from '../utilits/getAllProfessions';
 import { get_resumes, upload_files } from '../utilits/analyze';
+import MessageModal from './MessageModal';
 
 const Theme = createTheme({
   palette: {
@@ -50,6 +51,21 @@ const FileUpload = () => {
   const [loadingProfessions, setLoadingProfessions] = useState(true);
   const [errorProfessions, setErrorProfessions] = useState(null);
   const [errProf, setErrProf] = useState(false);
+
+  const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState('');
+  const [type, setType] = useState('');
+
+  const handleOpen = (message, type) => {
+    setMessage(message);
+    setType(type);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
 
   useEffect(() => {
     const fetchProfessions = async () => {
@@ -91,7 +107,8 @@ const FileUpload = () => {
     if (validFiles.length > 0) {
       setFiles([...files, ...validFiles]);
     } else {
-      alert('Пожалуйста, выберите файлы форматов PDF или DOCX');
+      // alert('Пожалуйста, выберите файлы форматов PDF или DOCX');
+      handleOpen('Пожалуйста, выберите файлы форматов PDF или DOCX', 'warning')
     }
     
     // Сбрасываем значение input, чтобы можно было повторно загрузить тот же файл
@@ -124,14 +141,17 @@ const FileUpload = () => {
         setReport(analysisReport);
       } else {
         if (!files.length) {
-          alert('Пожалуйста, выберите файлы для анализа');
+          // alert('Пожалуйста, выберите файлы для анализа');
+          handleOpen('Пожалуйста, выберите файлы для анализа', 'warning')
         } else if (!selectedProfessions){
-          alert('Пожалуйста, выберите профессию для анализа');
+          // alert('Пожалуйста, выберите профессию для анализа');
+          handleOpen('Пожалуйста, выберите профессию для анализа', 'warning')
         }
       }
     } catch (error) {
       console.error('Ошибка при анализе:', error);
-      alert('Произошла ошибка при анализе');
+      // alert('Произошла ошибка при анализе');
+      handleOpen('Произошла ошибка при анализе', 'error')
     }
   };
 
@@ -147,6 +167,9 @@ const FileUpload = () => {
 
   return (
     <ThemeProvider theme={Theme}>
+
+      <MessageModal open={open} message={message} type={type} onClose={handleClose} />
+
       <Container maxWidth="md" sx={{ py: 3 }}>
         <Paper elevation={2} sx={{ p: 3, borderRadius: '8px' }}>
           {/* Блок с логотипом */}

@@ -13,6 +13,7 @@ import {
   Divider,
   Link
   } from '@mui/material';
+import MessageModal from '../components/MessageModal';
 
 const Theme = createTheme({
   palette: {
@@ -33,6 +34,10 @@ const Authorization = () => {
     const [mode, setMode] = useState('login') // 'login' | 'register'
     const [form, setForm] = useState({ email: '', password: '' })
     const navigate = useNavigate()
+    const [open, setOpen] = useState(false);
+    const [message, setMessage] = useState('');
+    const [type, setType] = useState('');
+
 
     const toggleMode = () => {
         setMode(mode === 'login' ? 'register' : 'login')
@@ -41,6 +46,16 @@ const Authorization = () => {
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value })
     }
+
+    const handleOpen = (message, type) => {
+      setMessage(message);
+      setType(type);
+      setOpen(true);
+    };
+  
+    const handleClose = () => {
+      setOpen(false);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -52,29 +67,33 @@ const Authorization = () => {
                 navigate('/')
             } else {
                 await register(form)
-                alert('Регистрация прошла успешно! Теперь войдите.')
+                handleOpen('Регистрация прошла успешно!\nТеперь войдите.', 'success')
                 setMode('login')
-                window.location.reload();
             }
         } catch (error) {
-            alert('Ошибка: ' + (error?.response?.data?.detail || error.message))
+            // alert('Ошибка: ' + (error?.response?.data?.detail || error.message))
+            const msg = 'Ошибка: ' + (error?.response?.data?.detail || error.message);
+            handleOpen(msg, 'error')
         }
     }
 
     return (
     <ThemeProvider theme={Theme}>
+
+      <MessageModal open={open} message={message} type={type} onClose={handleClose} />
+
       <Container maxWidth="sm" sx={{ py: 3, height: '100vh', display: 'flex', alignItems: 'center' }}>
         <Paper elevation={2} sx={{ p: 4, borderRadius: '8px', width: '400px' }}>
           
         {/* Блок с логотипом */}
           <Box sx={{display: 'flex', justifyContent: 'center', mb: 3}}>
             <img
-             src="/logo.png"
-             alt="Газпром нефть"
-             style={{
+            src="/logo.png"
+            alt="Газпром нефть"
+            style={{
               height: '100px',
               objectFit: 'contain'
-             }}
+            }}
             />
           </Box>
           
