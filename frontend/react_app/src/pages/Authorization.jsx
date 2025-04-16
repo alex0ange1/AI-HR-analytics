@@ -47,11 +47,11 @@ const Authorization = () => {
 
         try {
             if (mode === 'login') {
-                const data = await login(form) // использует функцию из твоего api.js
+                const data = await login(form)
                 localStorage.setItem('token', data.access_token)
                 navigate('/')
             } else {
-                await register(form) // использует функцию регистрации
+                await register(form)
                 alert('Регистрация прошла успешно! Теперь войдите.')
                 setMode('login')
             }
@@ -63,7 +63,7 @@ const Authorization = () => {
     return (
     <ThemeProvider theme={Theme}>
       <Container maxWidth="sm" sx={{ py: 3, height: '100vh', display: 'flex', alignItems: 'center' }}>
-        <Paper elevation={2} sx={{ p: 4, borderRadius: '8px', width: '100%' }}>
+        <Paper elevation={2} sx={{ p: 4, borderRadius: '8px', width: '400px' }}>
           
         {/* Блок с логотипом */}
           <Box sx={{display: 'flex', justifyContent: 'center', mb: 3}}>

@@ -22,6 +22,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import axios from 'axios';
+import { get_all_prof } from '../utilits/getAllProfessions';
 
 const Theme = createTheme({
   palette: {
@@ -47,15 +48,14 @@ const FileUpload = () => {
   const [selectedProfessions, setSelectedProfessions] = useState('');
   const [loadingProfessions, setLoadingProfessions] = useState(true);
   const [errorProfessions, setErrorProfessions] = useState(null);
+  const [errProf, setErrProf] = useState(false);
 
   useEffect(() => {
     const fetchProfessions = async () => {
       try {
         setLoadingProfessions(true);
-
-        const response = await axios.get('/all_professions');
-        
-        setProfessions(response.data.data);
+        const response = await get_all_prof();
+        setProfessions(response);
         setErrorProfessions(null);
       } catch (err) {
         console.error('Ошибка при загрузке профессий:', err);
@@ -67,8 +67,14 @@ const FileUpload = () => {
     fetchProfessions();
   }, []);
 
+
+  const showErrProf = () => {
+    setErrProf(true);
+  };
+
   const handleProfessionsChange = (event) => {
     setSelectedProfessions(event.target.value);
+    if (errProf) setErrProf(false);
     // Сброс результатов предыдущего анализа при смене профессии
     if (report) {
       setReport(null);
@@ -212,6 +218,16 @@ const FileUpload = () => {
                 variant="contained"
                 component="label"
                 color="primary"
+                // disabled={!selectedProfessions}
+                style={!selectedProfessions 
+                  ? {opacity: '0.5', backgroundColor: 'gray'}
+                  : {}}
+                onClick={(e) => { if (!selectedProfessions) {
+                    showErrProf();
+                    e.preventDefault();
+                    return;
+                  }
+                }}
               >
                 Выбрать файлы
                 <input
@@ -222,6 +238,7 @@ const FileUpload = () => {
                   onChange={handleFileChange}
                 />
               </Button>
+              {errProf && <p style={{fontSize: '14px', marginTop: '2px', color: 'rgb(214, 73, 73)'}}>Выберите профессию</p>}
             </Box>
             
             {/* Список загруженных файлов */}
