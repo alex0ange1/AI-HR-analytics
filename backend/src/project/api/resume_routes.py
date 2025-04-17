@@ -108,13 +108,12 @@ async def delete_resume(
     "/analyze_files/{profession_id}",
     response_model=ProcessedResumeResponse,
     status_code=status.HTTP_200_OK,
+    dependencies=[Depends(get_current_user)],
 )
 async def analyze_files(
         profession_id: int,
         files: List[UploadFile] = File(...),
-        current_user: UserSchema = Depends(get_current_user),
 ) -> ProcessedResumeResponse:
-    check_for_admin_access(user=current_user)
     try:
         analyzer = Analyzer()
 
