@@ -1,6 +1,6 @@
 import apiClient from './api';
 
-export const upload_files = async (files) => {
+export const upload_files = async (files, professionId) => {
     try {
       const formData = new FormData();
   
@@ -11,7 +11,7 @@ export const upload_files = async (files) => {
         formData.append('files', file); // ключ 'files' — должен соответствовать тому, как сервер ожидает
       });
   
-      const response = await apiClient.post('/upload-files', formData, {
+      const response = await apiClient.put(`/analyze_files/${professionId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

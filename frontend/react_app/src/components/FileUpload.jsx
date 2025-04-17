@@ -128,7 +128,7 @@ const FileUpload = () => {
   
   const handleAnalyze = async () => {
     try {
-      const uploaded_files = await upload_files(files);
+      const uploaded_files = await upload_files(files, selectedProfessions);
       const res_resumes = await get_resumes(uploaded_files.resume_ids);
       const resumes = res_resumes.resumes;
       const last_name_resumes = resumes.map(res => res.last_name);
