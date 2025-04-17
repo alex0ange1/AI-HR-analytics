@@ -100,10 +100,15 @@ class ResumeRepository:
         need_comp = files_data.profession.competencies
 
         for file_data in files_data.files:
+            contact_info = analyzer.extract_contact_info(file_data.content)
+
             resume_data = ResumeCreateUpdateSchema(
-                first_name=file_data.filename,
-                last_name=file_data.filename,
-                phone="1234567890",
+                first_name=contact_info['first_name'],
+                last_name=contact_info['last_name'],
+                birth_date=contact_info['birth_date'],
+                city=contact_info['city'],
+                phone=contact_info['phone'],
+                email=contact_info['email'],
                 competencies=analyzer.analyze(file_data.content, need_comp)
             )
 

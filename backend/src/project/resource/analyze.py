@@ -1,9 +1,12 @@
+from datetime import datetime
+
 import io
+
 from pdfminer.high_level import extract_text as pdf_extract_text
 from docx import Document
 
 from yargy import Parser, rule, or_
-from yargy.predicates import dictionary
+from yargy.predicates import dictionary, gram, eq, in_, type as yargy_type
 from yargy.interpretation import fact
 from yargy.tokenizer import MorphTokenizer
 import re
@@ -153,7 +156,7 @@ class Analyzer:
                 # Находим все полные названия компетенций, содержащие найденное ключевое слово
                 for comp_name, comp_level in comp_dict.get(match.fact.name, []):
                     # Если уровень из текста выше базового уровня компетенции, используем его
-                    final_level = max(match.fact.level, comp_level)
+                    final_level = match.fact.level
                     if comp_name not in results or final_level > results[comp_name]:
                         results[comp_name] = final_level
 
@@ -166,6 +169,131 @@ class Analyzer:
         }
 
         return formatted_results
+
+    def extract_contact_info(self, text):
+        """
+        Извлекает контактную информацию из текста резюме.
+        Возвращает словарь с ключами: first_name, last_name, birth_date, city, phone, email.
+        Если какой-то параметр не найден, сохраняет None.
+        """
+        # Инициализация правил для извлечения информации
+
+        # Имя и фамилия
+        Name = fact('Name', ['first_name', 'last_name'])
+        name_rule = or_(
+            rule(
+                gram('Surn').interpretation(Name.last_name),
+                gram('Name').interpretation(Name.first_name)
+            ),
+            rule(
+                gram('Name').interpretation(Name.first_name),
+                gram('Surn').interpretation(Name.last_name)
+            )
+        ).interpretation(Name)
+        name_parser = Parser(name_rule, tokenizer=self.tokenizer)
+
+        # Дата рождения
+        Date = fact('Date', ['birth_date'])
+        INT = yargy_type('INT')
+        date_rule = rule(
+            or_(
+                rule(INT, eq('.'), INT, eq('.'), INT),  # DD.MM.YYYY
+                rule(INT, eq('-'), INT, eq('-'), INT),  # DD-MM-YYYY
+                rule(INT, eq('/'), INT, eq('/'), INT)  # DD/MM/YYYY
+            ).interpretation(Date.birth_date)
+        ).interpretation(Date)
+        date_parser = Parser(date_rule)
+
+        # Город
+        City = fact('City', ['city'])
+        city_rule = rule(
+            gram('Geox').interpretation(City.city)
+        ).interpretation(City)
+        city_parser = Parser(city_rule, tokenizer=self.tokenizer)
+
+        # Телефон
+        Phone = fact('Phone', ['phone'])
+        phone_rule = rule(
+            or_(
+                rule(eq('+'), INT),  # +7XXXXXXXXXX
+                rule(eq('8'), INT),  # 8XXXXXXXXXX
+                rule(INT, eq('-'), INT, eq('-'), INT),  # XXX-XXX-XXXX
+                rule(
+                    eq('+'),
+                    INT,
+                    or_(eq(' '), eq('(')).optional(),
+                    INT,
+                    or_(eq(')'), eq(' ')).optional(),
+                    or_(eq(' '), eq('-')).optional(),
+                    INT,
+                    or_(eq('-'), eq(' ')).optional(),
+                    INT,
+                    or_(eq('-'), eq(' ')).optional(),
+                    INT
+                )  # +7 (915) 123-45-67 или 8(915)1234567 и т.п.
+            ).interpretation(Phone.phone)
+        ).interpretation(Phone)
+        phone_parser = Parser(phone_rule)
+
+        # Извлечение информации
+        contact_info = {
+            'first_name': None,
+            'last_name': None,
+            'birth_date': None,
+            'city': None,
+            'phone': None,
+            'email': None
+        }
+
+        # Имя и фамилия
+        for match in name_parser.findall(text):
+            if match.fact.first_name and match.fact.last_name:
+                contact_info['first_name'] = match.fact.first_name.capitalize()
+                contact_info['last_name'] = match.fact.last_name.capitalize()
+                break
+
+        # Дата рождения
+        for match in date_parser.findall(text):
+            if match.fact.birth_date:
+                try:
+                    date_str = ''.join([t.value for t in match.tokens])
+                    for fmt in ('%d.%m.%Y', '%d-%m-%Y', '%d/%m/%Y', '%d.%m.%y', '%d-%m-%y', '%d/%m/%y'):
+                        try:
+                            dt = datetime.strptime(date_str, fmt)
+                            contact_info['birth_date'] = dt.strftime('%d.%m.%Y')
+                            break
+                        except ValueError:
+                            continue
+                except:
+                    continue
+
+        # Город
+        for match in city_parser.findall(text):
+            if match.fact.city:
+                contact_info['city'] = match.fact.city.capitalize()
+                break
+
+        # Телефон
+        for match in phone_parser.findall(text):
+            if match.fact.phone:
+                phone = ''.join([t.value for t in match.tokens])
+                # Нормализация номера телефона
+                if phone.startswith('8'):
+                    phone = '+7' + phone[1:]
+                elif phone.startswith('+'):
+                    pass
+                else:
+                    phone = '+7' + phone[-10:]
+                contact_info['phone'] = phone
+                break
+
+        # Email
+        email_regex = re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}')
+        match = email_regex.search(text)
+        if match:
+            contact_info['email'] = match.group(0).lower()
+
+        return contact_info
 
     async def parse_pdf(self, file: UploadFile) -> str:
         """Парсер PDF файлов с использованием pdfminer"""
