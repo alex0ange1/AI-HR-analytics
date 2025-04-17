@@ -13,6 +13,7 @@ import re
 
 from fastapi import HTTPException, status, UploadFile
 
+
 class Analyzer:
     def __init__(self):
         self.tokenizer = MorphTokenizer()
@@ -211,37 +212,13 @@ class Analyzer:
         ).interpretation(City)
         city_parser = Parser(city_rule, tokenizer=self.tokenizer)
 
-        # Телефон
-        Phone = fact('Phone', ['phone'])
-        phone_rule = rule(
-            or_(
-                rule(eq('+'), INT),  # +7XXXXXXXXXX
-                rule(eq('8'), INT),  # 8XXXXXXXXXX
-                rule(INT, eq('-'), INT, eq('-'), INT),  # XXX-XXX-XXXX
-                rule(
-                    eq('+'),
-                    INT,
-                    or_(eq(' '), eq('(')).optional(),
-                    INT,
-                    or_(eq(')'), eq(' ')).optional(),
-                    or_(eq(' '), eq('-')).optional(),
-                    INT,
-                    or_(eq('-'), eq(' ')).optional(),
-                    INT,
-                    or_(eq('-'), eq(' ')).optional(),
-                    INT
-                )  # +7 (915) 123-45-67 или 8(915)1234567 и т.п.
-            ).interpretation(Phone.phone)
-        ).interpretation(Phone)
-        phone_parser = Parser(phone_rule)
-
         # Извлечение информации
         contact_info = {
             'first_name': None,
             'last_name': None,
             'birth_date': None,
             'city': None,
-            'phone': None,
+            'phone': 'None',
             'email': None
         }
 
@@ -274,18 +251,14 @@ class Analyzer:
                 break
 
         # Телефон
-        for match in phone_parser.findall(text):
-            if match.fact.phone:
-                phone = ''.join([t.value for t in match.tokens])
-                # Нормализация номера телефона
-                if phone.startswith('8'):
-                    phone = '+7' + phone[1:]
-                elif phone.startswith('+'):
-                    pass
-                else:
-                    phone = '+7' + phone[-10:]
-                contact_info['phone'] = phone
-                break
+        phone_regex = re.compile(r'(\+7|8)[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}')
+        phone_match = phone_regex.search(text)
+        if phone_match:
+            phone = phone_match.group(0)
+            phone = re.sub(r'[^\d]', '', phone)
+            if phone.startswith('8'):
+                phone = '+7' + phone[1:]
+            contact_info['phone'] = phone
 
         # Email
         email_regex = re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}')
