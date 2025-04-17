@@ -1,10 +1,15 @@
 from fastapi import APIRouter, HTTPException, status, Depends, UploadFile, File, Form
+from pydantic import ValidationError
 from typing import List
 
 from project.schemas.resume import *
-from project.core.exceptions import ResumeNotFound
-from project.api.depends import database, resume_repo, get_current_user, check_for_admin_access
+from project.schemas.profession import *
+from project.core.exceptions import ResumeNotFound, ProfessionNotFound
+from project.api.depends import database, resume_repo, profession_repo, get_current_user, check_for_admin_access
 from project.schemas.user import UserSchema
+from project.resource.analyze import Analyzer
+
+import json
 
 resume_router = APIRouter()
 
@@ -99,28 +104,36 @@ async def delete_resume(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error.message)
 
 
-@resume_router.post(
-    "/upload-files",
+@resume_router.put(
+    "/analyze_files/{profession_id}",
     response_model=ProcessedResumeResponse,
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
 )
-async def upload_files(
+async def analyze_files(
+        profession_id: int,
         files: List[UploadFile] = File(...),
         current_user: UserSchema = Depends(get_current_user),
 ) -> ProcessedResumeResponse:
     check_for_admin_access(user=current_user)
-
     try:
-        # Преобразуем загруженные файлы в схему
-        files_data = MultiFileUploadSchema(
-            files=[
+        analyzer = Analyzer()
+
+        async with database.session() as session:
+            profession = await profession_repo.get_profession_by_id(session=session, profession_id=profession_id)
+
+        files_content = []
+        for file in files:
+            content = await analyzer.parse_file(file)
+            files_content.append(
                 FileUploadSchema(
                     filename=file.filename,
-                    content=await file.read()  # добавить парсер разных форматов
+                    content=content
                 )
-                for file in files
-            ],
-            user_id=current_user.id
+            )
+
+        files_data = MultiFileUploadSchema(
+            files=files_content,
+            profession=profession
         )
 
         async with database.session() as session:
@@ -130,6 +143,9 @@ async def upload_files(
             )
 
         return result
+
+    except ProfessionNotFound as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error.message)
 
     except Exception as e:
         raise HTTPException(

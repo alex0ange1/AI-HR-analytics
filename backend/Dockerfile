@@ -1,4 +1,4 @@
-FROM python:3.11.2-buster
+FROM python:3.12-slim
 ENV DEBIAN_FRONTEND='noninteractive'
 RUN apt-get update && apt install -y curl libsm6 libxext6 ffmpeg libfontconfig1 libxrender1 libgl1-mesa-glx
 RUN curl -sSL https://install.python-poetry.org | python

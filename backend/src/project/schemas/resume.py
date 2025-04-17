@@ -2,6 +2,8 @@ from typing import Dict, Any, Optional, List
 from datetime import date
 from pydantic import BaseModel, Field, ConfigDict
 
+from project.schemas.profession import ProfessionSchema, ProfessionCreateUpdateSchema
+
 
 class ResumeCreateUpdateSchema(BaseModel):
     first_name: Optional[str] = None
@@ -39,12 +41,12 @@ class ResumeListResponse(BaseModel):
 
 class FileUploadSchema(BaseModel):
     filename: str
-    content: bytes
+    content: str
 
 
 class MultiFileUploadSchema(BaseModel):
     files: List[FileUploadSchema]
-    user_id: int  # Для связи с пользователем
+    profession: ProfessionSchema
 
 
 class ProcessedResumeResponse(BaseModel):

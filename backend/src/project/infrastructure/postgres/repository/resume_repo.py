@@ -8,6 +8,7 @@ from project.schemas.resume import *
 from project.infrastructure.postgres.models import Resume
 
 from project.core.exceptions import ResumeNotFound
+from project.resource.analyze import Analyzer
 
 
 class ResumeRepository:
@@ -93,30 +94,19 @@ class ResumeRepository:
             session: AsyncSession,
             files_data: MultiFileUploadSchema,
     ) -> ProcessedResumeResponse:
+        analyzer = Analyzer()
+
         resume_ids = []
+        need_comp = files_data.profession.competencies
 
         for file_data in files_data.files:
-            # Здесь будет логика обработки файла
-            # Пока просто имитируем создание резюме из файла
             resume_data = ResumeCreateUpdateSchema(
-                first_name="From File",
+                first_name=file_data.filename,
                 last_name=file_data.filename,
-                phone="1234567890",  # обязательное поле
-                competencies={
-                    "competencies": [
-                        {
-                            "level": 2,
-                            "name": "Языки программирования и библиотеки (Python, C++)"
-                        },
-                        {
-                            "level": 2,
-                            "name": "Методы оптимизации"
-                        }
-                    ]
-                }
+                phone="1234567890",
+                competencies=analyzer.analyze(file_data.content, need_comp)
             )
 
-            # Создаем запись в базе
             query = (
                 insert(self._collection)
                 .values(resume_data.model_dump())
