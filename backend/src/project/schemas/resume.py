@@ -52,3 +52,18 @@ class MultiFileUploadSchema(BaseModel):
 class ProcessedResumeResponse(BaseModel):
     resume_ids: List[int]
     status: str
+
+class CompetencyMismatch(BaseModel):
+    name: str
+    required_level: int
+    actual_level: int
+
+class ResumeMatchResult(BaseModel):
+    resume_id: int
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    match_percentage: float
+    mismatched_competencies: List[CompetencyMismatch]
+
+class ProfessionResumeMatchResponse(BaseModel):
+    results: List[ResumeMatchResult]

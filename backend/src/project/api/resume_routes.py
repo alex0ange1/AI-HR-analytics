@@ -104,7 +104,7 @@ async def delete_resume(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error.message)
 
 
-@resume_router.put(
+@resume_router.post(
     "/analyze_files/{profession_id}",
     response_model=ProcessedResumeResponse,
     status_code=status.HTTP_200_OK,
@@ -155,7 +155,96 @@ async def analyze_files(
 
 
 @resume_router.post(
-    "/get-resumes-by-ids",
+    "/get_analyze_resumes_for_profession/{profession_id}",
+    response_model=ProfessionResumeMatchResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(get_current_user)],
+)
+async def get_analyze_resumes_for_profession(
+        profession_id: int,
+        resume_ids: List[int],
+) -> ProfessionResumeMatchResponse:
+    try:
+        async with database.session() as session:
+            # Получаем профессию
+            profession = await profession_repo.get_profession_by_id(
+                session=session,
+                profession_id=profession_id
+            )
+
+            # Получаем резюме
+            resumes = await resume_repo.get_resumes_by_ids(
+                session=session,
+                resume_ids=resume_ids
+            )
+
+            # Проверяем, что все резюме найдены
+            found_ids = {resume.id for resume in resumes}
+            not_found = [id_ for id_ in resume_ids if id_ not in found_ids]
+            if not_found:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Resumes with IDs {not_found} not found"
+                )
+
+            # Анализируем соответствие
+            results = []
+            required_competencies = profession.competencies.get("competencies", [])
+
+            for resume in resumes:
+                resume_competencies = resume.competencies.get("competencies", [])
+                resume_comp_dict = {comp["name"]: comp["level"] for comp in resume_competencies}
+
+                total_possible = 0
+                total_matched = 0
+                mismatches = []
+
+                for req_comp in required_competencies:
+                    comp_name = req_comp["name"]
+                    required_level = req_comp["level"]
+                    total_possible += required_level
+
+                    if comp_name in resume_comp_dict:
+                        actual_level = resume_comp_dict[comp_name]
+                        if actual_level >= required_level:
+                            total_matched += required_level
+                        else:
+                            total_matched += actual_level
+                            mismatches.append(CompetencyMismatch(
+                                name=comp_name,
+                                required_level=required_level,
+                                actual_level=actual_level
+                            ))
+                    else:
+                        mismatches.append(CompetencyMismatch(
+                            name=comp_name,
+                            required_level=required_level,
+                            actual_level=0
+                        ))
+
+                match_percentage = (total_matched / total_possible * 100) if total_possible > 0 else 0
+
+                results.append(ResumeMatchResult(
+                    resume_id=resume.id,
+                    first_name=resume.first_name,
+                    last_name=resume.last_name,
+                    match_percentage=round(match_percentage, 2),
+                    mismatched_competencies=mismatches
+                ))
+
+            return ProfessionResumeMatchResponse(results=results)
+
+    except ProfessionNotFound as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error.message)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+
+@resume_router.post(
+    "/get_resumes_by_ids",
     response_model=ResumeListResponse,
     status_code=status.HTTP_200_OK,
     dependencies=[Depends(get_current_user)],
