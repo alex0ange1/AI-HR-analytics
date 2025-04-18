@@ -6,9 +6,10 @@ from pdfminer.high_level import extract_text as pdf_extract_text
 from docx import Document
 
 from yargy import Parser, rule, or_
-from yargy.predicates import dictionary, gram, eq, in_, type as yargy_type
+from yargy.predicates import dictionary, gram, eq, custom, type as yargy_type
 from yargy.interpretation import fact
 from yargy.tokenizer import MorphTokenizer
+from yargy.tokenizer import Token
 import re
 
 from fastapi import HTTPException, status, UploadFile
@@ -181,14 +182,31 @@ class Analyzer:
 
         # Имя и фамилия
         Name = fact('Name', ['first_name', 'last_name'])
+
+        def is_surname(token):
+            if not isinstance(token, Token):
+                value = token
+            else:
+                value = token.value
+
+            pattern = r'^[А-ЯЁ][а-яё]*(?:-[А-ЯЁ][а-яё]*)?(?:ов|ев|ин|ын|ский|ской|цкий|цкой|ая|ий|ой|ый|ич|ица|ук|юк|ак|як|ец|ик|ка|ко|ла|ло|ра|ро|та|то|ха|хо|ча|чо|ша|шо)$'
+            return bool(re.fullmatch(pattern, value, re.IGNORECASE))
+
+        first_name_rule = gram('Name').interpretation(Name.first_name)
+
+        last_name_rule = or_(
+            gram('Surn'),
+            custom(is_surname)
+        ).interpretation(Name.last_name)
+
         name_rule = or_(
             rule(
-                gram('Surn').interpretation(Name.last_name),
-                gram('Name').interpretation(Name.first_name)
+                first_name_rule,
+                last_name_rule
             ),
             rule(
-                gram('Name').interpretation(Name.first_name),
-                gram('Surn').interpretation(Name.last_name)
+                last_name_rule,
+                first_name_rule
             )
         ).interpretation(Name)
         name_parser = Parser(name_rule, tokenizer=self.tokenizer)
@@ -262,9 +280,9 @@ class Analyzer:
 
         # Email
         email_regex = re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}')
-        match = email_regex.search(text)
-        if match:
-            contact_info['email'] = match.group(0).lower()
+        email_match = email_regex.search(text)
+        if email_match:
+            contact_info['email'] = email_match.group(0).lower()
 
         return contact_info
 
