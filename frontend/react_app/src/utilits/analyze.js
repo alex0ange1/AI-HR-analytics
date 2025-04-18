@@ -39,18 +39,11 @@ export const get_resumes = async (ids) => {
 // Функция для получения анализа резюме по профессии
 export const get_analyze_resumes = async (profession_id, resumeIdsArray) => {
   try {
-    // console.log(`Отправка запроса на URL: /get_analyze_resumes_for_profession/${profession_id}`);
-    // console.log('Тело запроса (массив):', resumeIdsArray);
-
     const response = await apiClient.post(
       `/get_analyze_resumes_for_profession/${profession_id}`,
       resumeIdsArray // <-- тело запроса
     );
 
-    // console.log('Статус ответа:', response.status);
-    // console.log('Заголовки ответа:', response.headers);
-    // console.log('Тип данных ответа:', typeof response.data);
-    
     return response.data;
   } catch (error) {
     console.error('Ошибка при получении анализа резюме:', error);
