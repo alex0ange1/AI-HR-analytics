@@ -108,7 +108,7 @@ class Analyzer:
         # Создаем словарь для поиска компетенций по ключевым словам
         comp_dict = {}
         for comp in competencies:
-            keywords = re.findall(r'\b\w{4,}\b', comp["name"].lower())  # только слова длиной 4+ символа
+            keywords = re.findall(r"[^\s]{2,}", comp["name"].lower())
             for kw in keywords:
                 comp_dict.setdefault(kw, []).append((comp["name"], comp["level"]))
 
@@ -137,8 +137,7 @@ class Analyzer:
             rule(competency_rule, level_1_rule),
             rule(competency_rule, level_2_rule),
             rule(competency_rule, level_3_rule),
-            # Также учитываем компетенции без явного указания уровня (по умолчанию уровень 1)
-            competency_rule.interpretation(self.CompetencyMatch.level.const(1))
+            competency_rule
         ).interpretation(self.CompetencyMatch)
 
         self.parser = Parser(main_rule, tokenizer=self.tokenizer)
@@ -154,11 +153,10 @@ class Analyzer:
         # Собираем результаты
         results = {}
         for match in matches:
-            if match.fact.name and match.fact.level:
+            if match.fact.name:
                 # Находим все полные названия компетенций, содержащие найденное ключевое слово
                 for comp_name, comp_level in comp_dict.get(match.fact.name, []):
-                    # Если уровень из текста выше базового уровня компетенции, используем его
-                    final_level = match.fact.level
+                    final_level = match.fact.level if match.fact.level else 1
                     if comp_name not in results or final_level > results[comp_name]:
                         results[comp_name] = final_level
 
