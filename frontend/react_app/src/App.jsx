@@ -7,8 +7,7 @@ import Authorization from './pages/Authorization';
 
 export default function App() {
     const isAuthenticated = !!localStorage.getItem('token')
-    // const isAuthenticated = true;
-
+    
     return (
         <Routes>
             <Route path="/" element={isAuthenticated ? <Analyse /> : <Navigate to='/login' />} />

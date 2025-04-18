@@ -62,16 +62,15 @@ const Authorization = () => {
       
         try {
             if (mode === 'login') {
-                const data = await login(form)
-                navigate('/')
-                localStorage.setItem('token', data.access_token)
+                const data = await login(form);
+                localStorage.setItem('token', data.access_token);
+                navigate('/');
             } else {
                 await register(form)
                 handleOpen('Регистрация прошла успешно!\nТеперь войдите.', 'success')
                 setMode('login')
             }
         } catch (error) {
-            // alert('Ошибка: ' + (error?.response?.data?.detail || error.message))
             const msg = 'Ошибка: ' + (error?.response?.data?.detail || error.message);
             handleOpen(msg, 'error')
         }
