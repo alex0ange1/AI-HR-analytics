@@ -3,7 +3,7 @@ from pydantic import SecretStr
 
 
 class Settings(BaseSettings):
-    ORIGINS: str = "http://localhost:3000"
+    ORIGINS: str
     ROOT_PATH: str
     ENV: str
     LOG_LEVEL: str

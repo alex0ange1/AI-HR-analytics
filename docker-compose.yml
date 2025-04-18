@@ -12,7 +12,7 @@ services:
     networks:
       - local_network
     ports:
-      - '127.0.0.1:5432:5432'
+      - '5432:5432'
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready" ]
       interval: 5s
@@ -31,13 +31,26 @@ services:
     networks:
       - local_network
     ports:
-      - '127.0.0.1:8000:8000'
+      - '8000:8000'
     build:
       context: ./backend
       dockerfile: Dockerfile
     pull_policy: build
     entrypoint: sh -c "./src/start.sh"
 
+  frontend:
+    depends_on:
+      - backend
+    networks:
+      - local_network
+    ports:
+      - '5173:5173'
+    build:
+      context: ./frontend/react_app
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend/react_app:/frontend
+      - /frontend/node_modules
 
 networks:
   local_network:
