@@ -1,0 +1,13 @@
+FROM node:18
+
+WORKDIR /app
+
+# Устанавливаем зависимости
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Копируем остальные файлы
+COPY . .
+
+# Запускаем dev-сервер
+CMD ["npm", "run", "dev"]

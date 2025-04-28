@@ -6,12 +6,12 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from jose import jwt
 
 from project.core.config import settings
-from project.core.exceptions import UserNotFound
+from project.core.exceptions import UserNotFound, UserAlreadyExists
 from project.schemas.auth import Token
 from project.api.depends import database, user_repo
 from project.resource.auth import verify_password, get_password_hash
 from project.schemas.user import UserCreateUpdateSchema
-# from project.schemas.userregister import UserRegisterCreateUpdateSchema
+from project.schemas.userregister import UserRegisterCreateUpdateSchema
 
 auth_router = APIRouter()
 
@@ -56,13 +56,14 @@ async def login_for_access_token(
     return Token(access_token=access_token, token_type="bearer")
 
 
-# @auth_router.post("/register", status_code=status.HTTP_201_CREATED)
-# async def register_user(user_dto: UserRegisterCreateUpdateSchema) -> None:
-#     try:
-#         async with database.session() as session:
-#             user = UserCreateUpdateSchema(login=user_dto.login,
-#                                           email=user_dto.email,
-#                                           password=get_password_hash(password=user_dto.password))
-#             await user_repo.create_user(session=session, user=user)
-#     except BaseException as error:
-#         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=error.args)
+@auth_router.post("/register", status_code=status.HTTP_201_CREATED)
+async def register_user(user_dto: UserRegisterCreateUpdateSchema) -> None:
+    try:
+        async with database.session() as session:
+            user = UserCreateUpdateSchema(email=user_dto.email,
+                                          password=get_password_hash(password=user_dto.password))
+            new_user = await user_repo.create_user(session=session, user=user)
+    except UserAlreadyExists as error:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=error.message)
+
+    return new_user

@@ -4,10 +4,14 @@ version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
 license = "MIT"
-#readme = "README.md"
+packages = [
+    { include = "src" }
+]
+
+# readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.12"
 sqlalchemy = "^2.0.35"
 fastapi = "^0.115.2"
 pydantic-settings = "^2.6.1"
@@ -22,7 +26,12 @@ python-jose = "^3.3.0"
 python-multipart = "^0.0.17"
 bcrypt = "^4.2.0"
 python-dotenv = "^1.1.0"
-
+natasha = "^1.6.0"
+yargy = "^0.16.0"
+pymorphy2 = "^0.9.1"
+python-docx = "^1.1.2"
+pdfminer-six = "^20250416"
+setuptools = "^78.1.0"
 
 [build-system]
 requires = ["poetry-core"]
